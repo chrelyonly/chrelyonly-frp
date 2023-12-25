@@ -22,7 +22,9 @@ import (
 	"net"
 	"runtime"
 	"sync/atomic"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/go-toast/toast"
 	"github.com/samber/lo"
@@ -226,10 +228,10 @@ func (ctl *Control) handleNewProxyResp(m msg.Message) {
 }
 
 func setTitle(title string) {
-	//kernel32, _ := syscall.LoadLibrary(`kernel32.dll`)
-	//sct, _ := syscall.GetProcAddress(kernel32, `SetConsoleTitleW`)
-	//syscall.Syscall(sct, 1, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))), 0, 0)
-	//syscall.FreeLibrary(kernel32)
+	kernel32, _ := syscall.LoadLibrary(`kernel32.dll`)
+	sct, _ := syscall.GetProcAddress(kernel32, `SetConsoleTitleW`)
+	syscall.Syscall(sct, 1, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))), 0, 0)
+	syscall.FreeLibrary(kernel32)
 }
 func (ctl *Control) handleNatHoleResp(m msg.Message) {
 	xl := ctl.xl
