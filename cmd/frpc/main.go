@@ -17,8 +17,13 @@ package main
 import (
 	_ "github.com/fatedier/frp/assets/frpc"
 	"github.com/fatedier/frp/cmd/frpc/sub"
+	"github.com/spf13/cobra"
 )
 
+func init() {
+	//允许exe直接运行
+	cobra.MousetrapHelpText = ""
+}
 func main() {
 	sub.Execute()
 }

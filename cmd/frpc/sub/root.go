@@ -17,10 +17,13 @@ package sub
 import (
 	"context"
 	"fmt"
+	"github.com/fatedier/frp/cmd/frpc/my"
+	"github.com/fatedier/frp/cmd/frpc/util"
 	"io/fs"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"syscall"
 	"time"
@@ -33,6 +36,7 @@ import (
 	"github.com/fatedier/frp/pkg/config/v1/validation"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatedier/frp/pkg/util/version"
+	"github.com/fatih/color"
 )
 
 var (
@@ -43,7 +47,7 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./frpc.ini", "config file of frpc")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file of frpc")
 	rootCmd.PersistentFlags().StringVarP(&cfgDir, "config_dir", "", "", "config directory, run one frpc service for each file in config directory")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "version of frpc")
 	rootCmd.PersistentFlags().BoolVarP(&strictConfigMode, "strict_config", "", false, "strict config parsing mode, unknown fields will cause an error")
@@ -51,13 +55,21 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "frpc",
-	Short: "frpc is the client of frp (https://github.com/fatedier/frp)",
+	Short: "这是一个div过的frp客户端 of frp (https://github.com/chrelyonly/chrelyonly-frp)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if showVersion {
 			fmt.Println(version.Full())
 			return nil
 		}
+		sysType := runtime.GOOS
+		color.Magenta("当前系统类型：" + sysType)
+		color.Magenta("当前系统架构：" + runtime.GOARCH)
 
+		err := util.MyVersion()
+		if err != nil {
+			//继续执行
+			//return err
+		}
 		// If cfgDir is not empty, run multiple frpc service for each config file in cfgDir.
 		// Note that it's only designed for testing. It's not guaranteed to be stable.
 		if cfgDir != "" {
@@ -66,7 +78,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Do not show command usage here.
-		err := runClient(cfgFile)
+		err = runClient(cfgFile)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -110,15 +122,27 @@ func handleTermSignal(svr *client.Service) {
 }
 
 func runClient(cfgFilePath string) error {
-	cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err := config.LoadClientConfig(cfgFilePath, strictConfigMode)
-	if err != nil {
-		return err
+	var cfg *v1.ClientCommonConfig
+	var proxyCfgs []v1.ProxyConfigurer
+	var visitorCfgs []v1.VisitorConfigurer
+	var isLegacyFormat bool
+	var err error
+	//打印当前时间
+	currentTime := time.Now()
+	color.Green("当前时间: " + currentTime.Format("2006-01-02 15:04:05"))
+	if cfgFilePath != "" {
+		color.Green("当前运行模式(读取本地配置文件),配置文件路径: " + cfgFilePath)
+		cfg, proxyCfgs, visitorCfgs, isLegacyFormat, err = config.LoadClientConfig(cfgFilePath, strictConfigMode)
+		if err != nil {
+			return err
+		}
+		if isLegacyFormat {
+			fmt.Printf("WARNING: ini format is deprecated and the support will be removed in the future, " +
+				"please use yaml/json/toml format instead!\n")
+		}
+	} else {
+		cfg, proxyCfgs, visitorCfgs, err = my.InitConfig()
 	}
-	if isLegacyFormat {
-		fmt.Printf("WARNING: ini format is deprecated and the support will be removed in the future, " +
-			"please use yaml/json/toml format instead!\n")
-	}
-
 	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
 	if warning != nil {
 		fmt.Printf("WARNING: %v\n", warning)

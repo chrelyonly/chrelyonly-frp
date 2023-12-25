@@ -16,10 +16,15 @@ package client
 
 import (
 	"context"
+	"github.com/fatedier/frp/cmd/frpc/util"
+	"github.com/fatih/color"
+	"log"
 	"net"
+	"runtime"
 	"sync/atomic"
 	"time"
 
+	"github.com/go-toast/toast"
 	"github.com/samber/lo"
 
 	"github.com/fatedier/frp/client/proxy"
@@ -168,9 +173,64 @@ func (ctl *Control) handleNewProxyResp(m msg.Message) {
 		xl.Warn("[%s] start error: %v", inMsg.ProxyName, err)
 	} else {
 		xl.Info("[%s] start proxy success", inMsg.ProxyName)
+		comment := util.GlobalListMap.Comment
+		Type := util.GlobalListMap.Type
+		LocalIP := util.GlobalListMap.LocalIp
+		LocalPort := util.GlobalListMap.LocalPort
+		ServerAddr := util.GlobalDivConfigObject.ServerAddr
+		RemotePort := util.GlobalListMap.RemotePort
+		CustomDomains := util.GlobalListMap.CustomDomains
+		PluginLocalPath := util.GlobalListMap.PluginLocalPath
+		PluginLocalAddr := util.GlobalListMap.PluginLocalAddr
+		if util.GlobalListMap.ExeType == "2" {
+			color.Green("************************************配置已加载************************************")
+			if Type == "tcp" {
+				color.Green("代理标识: " + comment + "\n代理协议: " + Type + "\n本地地址：" + LocalIP + ":" + LocalPort + "\n外网地址：" + ServerAddr + ":" + RemotePort)
+			} else if Type == "http" {
+				color.Green("代理标识: " + comment + "\n代理协议: " + Type + "\n本地地址：" + LocalIP + ":" + LocalPort + "\n外网地址：" + CustomDomains + ":(80,443,10000,10001选其一)")
+			}
+		} else if util.GlobalListMap.ExeType == "3" {
+			color.Green("************************************配置已加载************************************")
+			if Type == "tcp" {
+				color.Green("代理标识: " + comment + "\n代理协议: " + Type + "\n本地地址：" + PluginLocalPath + "\n外网地址：" + ServerAddr + ":" + RemotePort)
+			} else if Type == "http" {
+				color.Green("代理标识: " + comment + "\n代理协议: " + Type + "\n本地地址：" + PluginLocalPath + "\n外网地址：" + CustomDomains)
+			}
+		} else if util.GlobalListMap.ExeType == "4" {
+			color.Green("************************************配置已加载************************************")
+			color.Green("代理标识: " + comment + "\n代理协议: https -> http/s" + "\n源站地址：" + PluginLocalAddr + "\nCDN站：https://" + CustomDomains + " :(80,443,10000,10001选其一)")
+		} else {
+			color.Green("其他代理方式")
+		}
+		xl.Info("[%s] 启动代理成功", inMsg.ProxyName)
+		notification := toast.Notification{
+			AppID:   "Microsoft.Windows.Shell.RunDialog",
+			Title:   "提示",
+			Message: "启动代理成功",
+			Actions: []toast.Action{
+				{"protocol", "支持原作者", "https://github.com/fatedier/frp"},
+				{"protocol", "给div作者点赞", "https://github.com/chrelyonly"},
+			},
+		}
+		err := notification.Push()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		sysType := runtime.GOOS
+		if sysType == "windows" {
+			// windows系统
+			setTitle(`frp客户端！by_chrelyonly_` + util.DivVersion)
+		}
 	}
 }
 
+func setTitle(title string) {
+	//kernel32, _ := syscall.LoadLibrary(`kernel32.dll`)
+	//sct, _ := syscall.GetProcAddress(kernel32, `SetConsoleTitleW`)
+	//syscall.Syscall(sct, 1, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))), 0, 0)
+	//syscall.FreeLibrary(kernel32)
+}
 func (ctl *Control) handleNatHoleResp(m msg.Message) {
 	xl := ctl.xl
 	inMsg := m.(*msg.NatHoleResp)
