@@ -18,10 +18,15 @@ import (
 	"context"
 	"github.com/fatedier/frp/cmd/frpc/util"
 	"github.com/fatih/color"
+	"github.com/go-toast/toast"
 	"github.com/samber/lo"
+	"log"
 	"net"
+	"runtime"
 	"sync/atomic"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/client/visitor"
@@ -199,34 +204,34 @@ func (ctl *Control) handleNewProxyResp(m msg.Message) {
 			color.Green("其他代理方式")
 		}
 		xl.Info("[%s] 启动代理成功", inMsg.ProxyName)
-		//notification := toast.Notification{
-		//	AppID:   "Microsoft.Windows.Shell.RunDialog",
-		//	Title:   "提示",
-		//	Message: "启动代理成功",
-		//	Actions: []toast.Action{
-		//		{"protocol", "支持原作者", "https://github.com/fatedier/frp"},
-		//		{"protocol", "给div作者点赞", "https://github.com/chrelyonly"},
-		//	},
-		//}
-		//err := notification.Push()
-		//if err != nil {
-		//	log.Fatalln(err)
-		//}
-		//
-		//sysType := runtime.GOOS
-		//if sysType == "windows" {
-		//	// windows系统
-		//	setTitle(`frp客户端！by_chrelyonly_` + util.DivVersion)
-		//}
+		notification := toast.Notification{
+			AppID:   "Microsoft.Windows.Shell.RunDialog",
+			Title:   "提示",
+			Message: "启动代理成功",
+			Actions: []toast.Action{
+				{"protocol", "支持原作者", "https://github.com/fatedier/frp"},
+				{"protocol", "给div作者点赞", "https://github.com/chrelyonly"},
+			},
+		}
+		err := notification.Push()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		sysType := runtime.GOOS
+		if sysType == "windows" {
+			// windows系统
+			setTitle(`frp客户端！by_chrelyonly_` + util.DivVersion)
+		}
 	}
 }
 
-//	func setTitle(title string) {
-//		kernel32, _ := syscall.LoadLibrary(`kernel32.dll`)
-//		sct, _ := syscall.GetProcAddress(kernel32, `SetConsoleTitleW`)
-//		syscall.Syscall(sct, 1, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))), 0, 0)
-//		syscall.FreeLibrary(kernel32)
-//	}
+func setTitle(title string) {
+	kernel32, _ := syscall.LoadLibrary(`kernel32.dll`)
+	sct, _ := syscall.GetProcAddress(kernel32, `SetConsoleTitleW`)
+	syscall.Syscall(sct, 1, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))), 0, 0)
+	syscall.FreeLibrary(kernel32)
+}
 func (ctl *Control) handleNatHoleResp(m msg.Message) {
 	xl := ctl.xl
 	inMsg := m.(*msg.NatHoleResp)
