@@ -1,6 +1,7 @@
 class BaseProxy {
   name: string
   type: string
+  annotations: Map<string, string>
   encryption: boolean
   compression: boolean
   conns: number
@@ -21,10 +22,19 @@ class BaseProxy {
   constructor(proxyStats: any) {
     this.name = proxyStats.name
     this.type = ''
+    this.annotations = new Map<string, string>()
+    if (proxyStats.conf?.annotations) {
+      for (const key in proxyStats.conf.annotations) {
+        this.annotations.set(key, proxyStats.conf.annotations[key])
+      }
+    }
+
     this.encryption = false
     this.compression = false
-    this.encryption = (proxyStats.conf?.transport?.useEncryption) || this.encryption;
-    this.compression = (proxyStats.conf?.transport?.useCompression) || this.compression;
+    this.encryption =
+      proxyStats.conf?.transport?.useEncryption || this.encryption
+    this.compression =
+      proxyStats.conf?.transport?.useCompression || this.compression
     this.conns = proxyStats.curConns
     this.trafficIn = proxyStats.todayTrafficIn
     this.trafficOut = proxyStats.todayTrafficOut
@@ -76,12 +86,12 @@ class HTTPProxy extends BaseProxy {
     this.type = 'http'
     this.port = port
     if (proxyStats.conf) {
-      this.customDomains = proxyStats.conf.customDomains || this.customDomains;
+      this.customDomains = proxyStats.conf.customDomains || this.customDomains
       this.hostHeaderRewrite = proxyStats.conf.hostHeaderRewrite
       this.locations = proxyStats.conf.locations
       if (proxyStats.conf.subdomain) {
         this.subdomain = `${proxyStats.conf.subdomain}.${subdomainHost}`
-      } 
+      }
     }
   }
 }
@@ -92,7 +102,7 @@ class HTTPSProxy extends BaseProxy {
     this.type = 'https'
     this.port = port
     if (proxyStats.conf != null) {
-      this.customDomains = proxyStats.conf.customDomains || this.customDomains;
+      this.customDomains = proxyStats.conf.customDomains || this.customDomains
       if (proxyStats.conf.subdomain) {
         this.subdomain = `${proxyStats.conf.subdomain}.${subdomainHost}`
       }

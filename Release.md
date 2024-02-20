@@ -1,3 +1,3 @@
-### Fixes
+### Features
 
-* frpc has a certain chance to panic when login: close of closed channel.
+* Proxy supports configuring annotations, which will be displayed in the frps dashboard.
