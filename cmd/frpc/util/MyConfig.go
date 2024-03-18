@@ -1,6 +1,6 @@
 package util
 
-var DivVersion = "2.0"
+var DivVersion = "3.1萝卜定制版"
 
 // 全局参数方便调用
 var GlobalDivConfigObject DivConfigObject

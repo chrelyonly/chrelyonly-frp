@@ -2,12 +2,14 @@ package my
 
 import (
 	"fmt"
+	"github.com/fatedier/frp/cmd/frpc/user"
 	"github.com/fatedier/frp/cmd/frpc/util"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
 	"github.com/fatedier/frp/pkg/util/log"
 	"github.com/fatih/color"
 	"github.com/samber/lo"
 	"math/rand"
+	"net"
 	"os"
 	"strconv"
 )
@@ -23,54 +25,11 @@ func InitConfig() (*v1.ClientCommonConfig,
 		visitorCfgs = make([]v1.VisitorConfigurer, 0)
 	)
 	myConfig := util.DivConfigObject{}
-	color.Yellow("选择启动配置模式：1快速映射模式,2高级模式,输入其他默认1")
-	//	分快速模式和高级配置模式
-	var modelTYpe int
-	_, err := fmt.Scanln(&modelTYpe)
-	if err != nil {
-		modelTYpe = 1
-	}
-	if modelTYpe == 1 {
-		color.Magenta("快速映射模式")
-		//服务器节点 默认 阿里云
-		myConfig.ServerName = "chrelyonly.cn"
-		//选择协议
-		cliCfg, proxyCfgs, visitorCfgs, err = BuildProtocol(myConfig, true)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("出现错误,程序退出")
-			os.Exit(1)
-		}
-	} else {
-		color.Magenta("当前运行模式(手动生成配置文件)")
-		//判断哪个服务器
-		color.Green("选择服务器节点(默认上海节点): ")
-		color.Yellow("1.上海阿里云")
-		color.Cyan("2.四川-腾讯")
-		color.Blue("3.美国")
-		// 选择的服务名称
-		var serverNameTemp = ""
-		// 选择的服务编号节点
-		var ServerNode int
-		_, err := fmt.Scanln(&ServerNode)
-		if err != nil {
-			ServerNode = 1
-		}
-		if ServerNode == 1 {
-			serverNameTemp = "上海阿里云"
-			myConfig.ServerName = "chrelyonly.cn"
-		} else if ServerNode == 2 {
-			serverNameTemp = "四川-腾讯"
-			myConfig.ServerName = "tx.chrelyonly.cn"
-		} else if ServerNode == 3 {
-			serverNameTemp = "美国"
-			myConfig.ServerName = "chrelyonly.cf"
-		} else {
-			serverNameTemp = "上海阿里云(限速10-30/mbps)"
-			myConfig.ServerName = "chrelyonly.cn"
-		}
-		color.Red("当前服务器节点: " + serverNameTemp + " 服务器地址: " + myConfig.ServerName)
-
+	//是否定制版本
+	if true {
+		user.Luobo()
+		myConfig.ServerName = "frp.imbhj.com"
+		err := net.ErrClosed
 		//选择协议
 		cliCfg, proxyCfgs, visitorCfgs, err = BuildProtocol(myConfig, false)
 		if err != nil {
@@ -78,8 +37,67 @@ func InitConfig() (*v1.ClientCommonConfig,
 			fmt.Println("出现错误,程序退出")
 			os.Exit(1)
 		}
+		return cliCfg, proxyCfgs, visitorCfgs, err
+	} else {
+		color.Yellow("选择启动配置模式：1快速映射模式,2高级模式,输入其他默认1")
+		//	分快速模式和高级配置模式
+		var modelTYpe int
+		_, err := fmt.Scanln(&modelTYpe)
+		if err != nil {
+			modelTYpe = 1
+		}
+		if modelTYpe == 1 {
+			color.Magenta("快速映射模式")
+			//服务器节点 默认 阿里云
+			myConfig.ServerName = "frp.chrelyonly.cn"
+			//选择协议
+			cliCfg, proxyCfgs, visitorCfgs, err = BuildProtocol(myConfig, true)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Println("出现错误,程序退出")
+				os.Exit(1)
+			}
+		} else {
+			color.Magenta("当前运行模式(手动生成配置文件)")
+
+			//判断哪个服务器
+			color.Green("选择服务器节点(默认上海节点): ")
+			color.Yellow("1.上海阿里云")
+			color.Cyan("2.四川-腾讯")
+			color.Blue("3.美国")
+			// 选择的服务名称
+			var serverNameTemp = ""
+			// 选择的服务编号节点
+			var ServerNode int
+			_, err := fmt.Scanln(&ServerNode)
+			if err != nil {
+				ServerNode = 1
+			}
+			if ServerNode == 1 {
+				serverNameTemp = "上海阿里云"
+				myConfig.ServerName = "frp.chrelyonly.cn"
+			} else if ServerNode == 2 {
+				serverNameTemp = "四川-腾讯"
+				myConfig.ServerName = "frp.tx.chrelyonly.cn"
+			} else if ServerNode == 3 {
+				serverNameTemp = "美国"
+				myConfig.ServerName = "frp.chrelyonly.cf"
+			} else {
+				serverNameTemp = "上海阿里云(限速10-30/mbps)"
+				myConfig.ServerName = "frp.chrelyonly.cn"
+			}
+			color.Red("当前服务器节点: " + serverNameTemp + " 服务器地址: " + myConfig.ServerName)
+
+			//选择协议
+			cliCfg, proxyCfgs, visitorCfgs, err = BuildProtocol(myConfig, false)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Println("出现错误,程序退出")
+				os.Exit(1)
+			}
+		}
+		return cliCfg, proxyCfgs, visitorCfgs, err
 	}
-	return cliCfg, proxyCfgs, visitorCfgs, err
 }
 
 func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonConfig,
@@ -89,10 +107,10 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 
 	//初始化一些配置餐宿
 	divConfig.Token = "1172576293"
-	divConfig.ServerAddr = "frp-api." + divConfig.ServerName
+	divConfig.ServerAddr = divConfig.ServerName
 	divConfig.ServerPort = 7000
 	//泛域名后缀
-	domain := ".frp." + divConfig.ServerName
+	domain := "." + divConfig.ServerName
 	//需要一个集合
 	var list []util.ListMap
 	//创建一个对象 存储数据
@@ -146,7 +164,7 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 			listMap.IsDom = isDom
 			if isDom {
 				listMap.Type = "http"
-				fmt.Println("请输入代理转发域名,(前缀).frp." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串")
+				fmt.Println("请输入代理转发域名,(前缀)." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串")
 				var CustomDomains string
 				_, err = fmt.Scanln(&CustomDomains)
 				if err != nil {
@@ -192,7 +210,7 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 				var password string
 				_, err = fmt.Scanln(&password)
 				if err != nil {
-					log.Info("请配置密码,默认123456789")
+					log.Infof("请配置密码,默认123456789")
 					password = "123456789"
 				}
 				listMap.PluginHttpPasswd = password
@@ -202,7 +220,7 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 		if proxyType == "4" {
 			listMap.ExeType = "4"
 			listMap.Type = "http"
-			fmt.Println("请输入代理转发域名,(前缀).frp." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串")
+			fmt.Println("请输入代理转发域名,(前缀)." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串")
 			var CustomDomains string
 			_, err = fmt.Scanln(&CustomDomains)
 			if err != nil {
@@ -263,7 +281,7 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 			if proxyType == "2" {
 				listMap.Type = "http"
 				listMap.ExeType = "2"
-				fmt.Println("请输入代理转发域名,(前缀).frp." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串(提供免费域名与多个端口)")
+				fmt.Println("请输入代理转发域名,(前缀)." + divConfig.ServerName + ",只用输入需要的前缀,默认随机一个字符串(提供免费域名与多个端口)")
 				var CustomDomains string
 				_, err = fmt.Scanln(&CustomDomains)
 				if err != nil {
@@ -282,7 +300,7 @@ func BuildProtocol(divConfig util.DivConfigObject, flag bool) (*v1.ClientCommonC
 					var password string
 					_, err = fmt.Scanln(&password)
 					if err != nil {
-						log.Info("请配置密码,默认123456789")
+						log.Infof("请配置密码,默认123456789")
 						password = "123456789"
 					}
 					listMap.PluginHttpPasswd = password

@@ -6,11 +6,10 @@ require (
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/fatedier/beego v0.0.0-20171024143340-6c6a4f5bd5eb
-	github.com/fatedier/golib v0.1.1-0.20230725122706-dcbaee8eef40
+	github.com/fatedier/golib v0.4.1
 	github.com/fatedier/kcp-go v2.0.4-0.20190803094908-fe8645b0a904+incompatible
 	github.com/fatih/color v1.16.0
 	github.com/go-toast/toast v0.0.0-20190211030409-01e6764cf0a4
-	github.com/fatedier/golib v0.4.1
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0

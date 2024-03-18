@@ -2,7 +2,7 @@
 *.o
 *.a
 *.so
-
+build
 # Folders
 _obj
 _test
